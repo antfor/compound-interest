@@ -1,7 +1,8 @@
-import { parseFloatSafe } from './utils/parse.js';
+import { Savings } from './utils/intrest.mts';
+import { breakdownSettings } from './IntrestChart.tsx';
 
 
-function totalIntrest(data){
+function totalIntrest(data:Savings):Dataset[]{
   return([{
     label: 'ränta',
     data: data.totalIntrest,
@@ -11,7 +12,7 @@ function totalIntrest(data){
 }
   
 
-function totalDeposit(data){
+function totalDeposit(data:Savings):Dataset[]{
   return([{
     label: 'insata pengar',
     data: data.totalAcc,
@@ -21,7 +22,7 @@ function totalDeposit(data){
 }
   
 
-function accBreakdown(data){
+function accBreakdown(data:Savings):Dataset[]{
   return([{
     label: 'startbelopp',
     data: data.accPrincipel,
@@ -37,7 +38,7 @@ function accBreakdown(data){
 }
 
 
-function intrestOnIntrestBreakdown(data, iiB){
+function intrestOnIntrestBreakdown(data:Savings, iiB:boolean):Dataset[]{
   
   if(iiB){
     return([{
@@ -66,8 +67,8 @@ function intrestOnIntrestBreakdown(data, iiB){
 }
 
 
-function intrestBreakdown(data, iiB){
-  const intrest =[{
+function intrestBreakdown(data:Savings, iiB:boolean):Dataset[]{
+  const intrest:Dataset[] =[{
     label: 'ränta på startbelopp',
     data: data.intrestPrincipel,
     backgroundColor: 'rgb(255, 217, 102)',
@@ -87,30 +88,38 @@ function intrestBreakdown(data, iiB){
 }
 
 
-function removeEmpty(data){
+function removeEmpty(data:Dataset[]){
   return data.filter((v) => v.data.reduce((acc,val) => acc || val != 0, false));
 }
 
   
-function getDatasets(data, settings){
-  const iiB = settings.intrestOnIntrestBreakdown;
-  let intrest = settings.intrestBreakdown ? intrestBreakdown(data, iiB): totalIntrest(data);
-  let acc = settings.accBreakdown ? accBreakdown(data): totalDeposit(data);
+function getDatasets(data:Savings, bs:breakdownSettings):Dataset[]{
+  const iiB = bs.intrestOnIntrestBreakdown;
+  const intrest = bs.intrestBreakdown ? intrestBreakdown(data, iiB): totalIntrest(data);
+  const acc = bs.accBreakdown ? accBreakdown(data): totalDeposit(data);
   
   return removeEmpty(acc.concat(intrest));
 }
 
 
-function getTime(N){
-  N = parseFloatSafe(N);
-  return new Array(N+1).fill().map((_,i) => i );
-
+function getTime(N:number){
+  return Array.from({ length: N + 1 }, (_, i) => i);
 }
 
-
-export function getModel(data, settings){
+export type Dataset= {
+  label: string,
+  data: number[],
+  backgroundColor: string,
+  intrest: boolean,
+  intrestOnIntrest?: boolean,
+};
+export type Model = {
+  labels: number[],
+  datasets: Dataset[],
+};
+export function getModel(data:Savings, time:number, bs:breakdownSettings):Model{
   return {
-    labels: getTime(settings.time),
-    datasets: getDatasets(data, settings),
+    labels: getTime(time),
+    datasets: getDatasets(data, bs),
   };
 }

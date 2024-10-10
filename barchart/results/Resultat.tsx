@@ -1,18 +1,19 @@
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import { simplifyValue } from '../utils/parse.js';
+import { simplifyValue } from '../utils/parse.mjs';
 import styles from './result.module.css'; 
 import { DoughnutChart } from './DoughnutChart.jsx';
 import { Total } from './Total.jsx';
+import { Dataset } from '../model.mts';
+import { Savings } from '../utils/intrest.mts';
 
 
-
-function getColor(dataset){
+function getColor(dataset:Dataset){
     return ({color:  dataset.backgroundColor});
 }
   
 
-function paragraph(dataset, index, tot){
+function Paragraph(dataset:Dataset, index:number, tot:number){
     const label = dataset.label;
     const value = dataset.data[index];
     const data = simplifyValue(value, 0);
@@ -25,7 +26,7 @@ function paragraph(dataset, index, tot){
 }
   
 
-function emptyResult(){
+function EmptyResult(){
     return(
         <div>
             <h2>Resultat</h2>
@@ -34,16 +35,22 @@ function emptyResult(){
     );
 }
 
-function Brake(arr){
+function Brake(arr:Dataset[]){
     if(arr.length!==0)
         return <br className='d-md-none'/>;
 }
 
-export default function Result(datasets, total, index, dataPoints){
+interface props{
+    datasets:Dataset[],
+    total:number,
+    index:number,
+    dataPoints:Savings
+}
+export default function Result({datasets, total, index, dataPoints}:props){
     
     
     if(datasets.length == 0){
-        return (emptyResult());
+        return <EmptyResult/>;
     }
 
     const acc = datasets.filter((dataset) => !dataset.intrest);
@@ -58,18 +65,18 @@ export default function Result(datasets, total, index, dataPoints){
                     <p>Slutsumma: {simplifyValue(total,0)} kr (100%)</p>
                     {Brake(intrestIntrest)}
                     <Row>
-                        {intrestIntrest.map((dataset) => paragraph(dataset, index, total))}
+                        {intrestIntrest.map((dataset) => Paragraph(dataset, index, total))}
                     </Row>
                     {Brake(intrest)}
                     <Row>
-                        {intrest.map((dataset) => paragraph(dataset, index, total))}
+                        {intrest.map((dataset) => Paragraph(dataset, index, total))}
                     </Row>
                     {Brake(acc)}
                     <Row>
-                        {acc.map((dataset) => paragraph(dataset, index, total))}
+                        {acc.map((dataset) => Paragraph(dataset, index, total))}
                     </Row>
                     <br/>
-                    {Total(dataPoints, total, index)}
+                    <Total {...{dataPoints, total, index}} />
                 </Col>
 
                 <Col xl={3} className='col-xl'>
